@@ -13,6 +13,8 @@ from argparse import ArgumentParser
 
 from PIL import Image
 
+import imageio
+
 import re
 numbers = re.compile(r'(\d+)')
 def numericalSort(value):
@@ -21,7 +23,7 @@ def numericalSort(value):
     return parts
 
 # default arguments
-CONTENT_WEIGHT = 5e0
+CONTENT_WEIGHT = 10
 CONTENT_WEIGHT_BLEND = 1
 STYLE_WEIGHT = 5e2
 TV_WEIGHT = 1e2
@@ -31,7 +33,7 @@ BETA1 = 0.9
 BETA2 = 0.999
 EPSILON = 1e-08
 STYLE_SCALE = 1.0
-ITERATIONS = 500
+ITERATIONS = 800
 VGG_PATH = 'imagenet-vgg-verydeep-19.mat'
 POOLING = 'max'
 
@@ -103,8 +105,9 @@ def main():
     if not os.path.isfile(options.network):
         parser.error("Network %s does not exist. (Did you forget to download it?)" % options.network)
 
-    source_folder = options.content_folder + '\*'
-    source_files = sorted(glob.glob('frames//*'), key=numericalSort)
+    source_folder = options.content_folder + '/*'
+    source_files = sorted(glob.glob(source_folder), key=numericalSort)
+    #source_files = sorted(glob.glob('frames/*'), key=numericalSort)
     style_image = [imread(options.style)]
     style_blend_weights = [1]
     initial_noiseblend = 1.0
@@ -112,6 +115,7 @@ def main():
     output_files = []
     for i in range(len(source_files)):
         output_files.append(options.output_folder + '/' + str(i) + '.jpg')
+
 
     for i in range(len(source_files)):
         if(i == 0):
@@ -188,6 +192,13 @@ def main():
                     output_file = output_files[i]
                 if output_file:
                     imsave(output_file, combined_rgb)
+
+
+    images = []    
+    for filename in output_files:
+        images.append(imageio.imread(filename))
+    imageio.mimsave('output.gif', images)               
+
 
 
 def imread(path):

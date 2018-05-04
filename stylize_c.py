@@ -11,7 +11,9 @@ import time
 from PIL import Image
 
 CONTENT_LAYERS = ('relu4_2', 'relu5_2')
+#CONTENT_LAYERS = {'conv2_2'}
 STYLE_LAYERS = ('relu1_1', 'relu2_1', 'relu3_1', 'relu4_1', 'relu5_1')
+#STYLE_LAYERS = ('conv1_1', 'conv2_1', 'conv3_1', 'conv4_1', 'conv5_1')
 
 try:
     reduce
@@ -92,6 +94,7 @@ def stylize_c(network, initial, initial_noiseblend, content, styles, preserve_co
 
         # content loss
         content_layers_weights = {}
+        #content_layers_weights['conv2_2'] = content_weight_blend
         content_layers_weights['relu4_2'] = content_weight_blend
         content_layers_weights['relu5_2'] = 1.0 - content_weight_blend
 
@@ -142,21 +145,24 @@ def stylize_c(network, initial, initial_noiseblend, content, styles, preserve_co
         #G_filt = tf.convert_to_tensor(K, dtype=tf.float32)
         #tf.expand_dims(G_filt,0)
         #tf.expand_dims(G_filt,0)
+
         tf_org_img = tf.convert_to_tensor(content,dtype=tf.float32)
         tf_org_img = tf.reshape(tf_org_img, tf.shape(image))
         tf_prev_img = tf.convert_to_tensor(prev_content_image,dtype=tf.float32)
         tf_prev_img = tf.reshape(tf_prev_img, tf.shape(image))
         tf_prev_styl = tf.convert_to_tensor(prev_style_image,dtype=tf.float32)
         tf_prev_styl = tf.reshape(tf_prev_styl, tf.shape(image))
+
         #smth_org_frame_diff = tf.nn.conv2d(tf_org_img - tf_prev_img,filterG,strides=[1, 1, 1, 1],padding='VALID')
         #smth_styl_frame_diff = tf.nn.conv2d(image - tf_prev_styl,filterG,strides=[1, 1, 1, 1],padding='VALID')
         #org_frame_diff = tf.norm(smth_org_frame_diff)
         #styl_frame_diff = tf.norm(smth_styl_frame_diff)
+
         org_frame_diff = tf.norm(tf_org_img - tf_prev_img)
         styl_frame_diff = tf.norm(tf_prev_styl - image)
 
-        hyperparam_cl = 25000.0
-        cl_loss = tf.multiply(hyperparam_cl,tf.divide(styl_frame_diff,org_frame_diff))
+        hyperparam_cl = 10e4
+        cl_loss = tf.multiply(hyperparam_cl,tf.divide(styl_frame_diff,org_frame_diff+3*content.shape[0]*content.shape[1]))
 
 
 
@@ -164,7 +170,7 @@ def stylize_c(network, initial, initial_noiseblend, content, styles, preserve_co
 
 
         # overall loss
-        loss = content_loss + style_loss + tv_loss + cl_loss
+        loss = content_loss + style_loss + cl_loss + tv_loss
 
         # optimizer setup
         train_step = tf.train.AdamOptimizer(learning_rate, beta1, beta2, epsilon).minimize(loss)
