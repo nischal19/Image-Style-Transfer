@@ -6,7 +6,7 @@ Apart from the content loss and style loss as mentioned in the paper a new loss 
 
 ## Running - 
 
-python3 neural_style_red.py --content_folder <content folder> --style <file> --output_folder <output_folder>
+python3 neural_style_red.py --content_folder <content_folder> --style <style_file> --output_folder <output_folder>
 
 <content_folder> must contain the each frame in order of the gif 
 <output_folder> is the destination where the stylized frames are stored
@@ -15,7 +15,7 @@ A gif file named "output.gif" is also stored at the location of the "neural_styl
 
 For obtaining the results for a single image the following command can be used :
 
-python3 neural_style1.py --content <file> --styles <file/files> --output <file>
+python3 neural_style1.py --content <content_file> --styles <style_file> --output <output_file>
 
 Use --iterations to change the number of iterations
 Use --content-weight to change the weight of content of content image in the output image
